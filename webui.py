@@ -15,12 +15,13 @@ from flask_httpauth import HTTPBasicAuth
 import config
 import db
 import sonarr
+import radarr
 import utils
 
 logger = logging.getLogger("WEB-UI")
 logger.setLevel(logging.DEBUG)
 
-app = Flask("sonarrAnnounced")
+app = Flask("Announced")
 auth = HTTPBasicAuth()
 cfg = config.init()
 trackers = None
@@ -103,6 +104,7 @@ def trackers():
             cfg['iptorrents.torrent_pass'] = request.form['iptorrents_torrentpass']
             cfg['iptorrents.nick'] = request.form['iptorrents_nick']
             cfg['iptorrents.nick_pass'] = request.form['iptorrents_nickpassword']
+            cfg['iptorrents.delay'] = request.form['iptorrents_delay']
             logger.debug("saved iptorrents settings")
 
         if 'morethan_torrentpass' in request.form:
@@ -110,6 +112,7 @@ def trackers():
             cfg['morethan.torrent_pass'] = request.form['morethan_torrentpass']
             cfg['morethan.nick'] = request.form['morethan_nick']
             cfg['morethan.nick_pass'] = request.form['morethan_nickpassword']
+            cfg['morethan.delay'] = request.form['morethan_delay']
             logger.debug("saved morethan settings")
 
         if 'btn_torrentpass' in request.form:
@@ -117,6 +120,7 @@ def trackers():
             cfg['btn.torrent_pass'] = request.form['btn_torrentpass']
             cfg['btn.nick'] = request.form['btn_nick']
             cfg['btn.nick_pass'] = request.form['btn_nickpassword']
+            cfg['btn.delay'] = request.form['btn_delay']
             logger.debug("saved btn settings")
 
         if 'nbl_torrentpass' in request.form:
@@ -124,25 +128,50 @@ def trackers():
             cfg['nbl.torrent_pass'] = request.form['nbl_torrentpass']
             cfg['nbl.nick'] = request.form['nbl_nick']
             cfg['nbl.nick_pass'] = request.form['nbl_nickpassword']
+            cfg['nbl.delay'] = request.form['nbl_delay']
             logger.debug("saved nbl settings")
 
         if 'hdtorrents_cookies' in request.form:
             cfg['hdtorrents.cookies'] = request.form['hdtorrents_cookies']
             cfg['hdtorrents.nick'] = request.form['hdtorrents_nick']
             cfg['hdtorrents.nick_pass'] = request.form['hdtorrents_nickpassword']
+            cfg['hdtorrents.delay'] = request.form['hdtorrents_delay']
             logger.debug("saved hdtorrents settings")
 
         if 'xspeeds_torrentpass' in request.form:
             cfg['xspeeds.torrent_pass'] = request.form['xspeeds_torrentpass']
             cfg['xspeeds.nick'] = request.form['xspeeds_nick']
             cfg['xspeeds.nick_pass'] = request.form['xspeeds_nickpassword']
+            cfg['xspeeds.delay'] = request.form['xspeeds_delay']
             logger.debug("saved xspeeds settings")
 
         if 'flro_torrentpass' in request.form:
             cfg['flro.torrent_pass'] = request.form['flro_torrentpass']
             cfg['flro.nick'] = request.form['flro_nick']
             cfg['flro.nick_pass'] = request.form['flro_nickpassword']
+            cfg['flro.delay'] = request.form['flro_delay']
             logger.debug("saved filelist settings")
+
+        if 'torrentleech_torrentpass' in request.form:
+            cfg['torrentleech.torrent_pass'] = request.form['torrentleech_torrentpass']
+            cfg['torrentleech.nick'] = request.form['torrentleech_nick']
+            cfg['torrentleech.nick_pass'] = request.form['torrentleech_nickpassword']
+            cfg['torrentleech.delay'] = request.form['torrentleech_delay']
+            logger.debug("saved torrentleech settings")
+
+        if 'alpharatio_torrentpass' in request.form:
+            cfg['alpharatio.torrent_pass'] = request.form['alpharatio_torrentpass']
+            cfg['alpharatio.nick'] = request.form['alpharatio_nick']
+            cfg['alpharatio.nick_pass'] = request.form['alpharatio_nickpassword']
+            cfg['alpharatio.delay'] = request.form['alpharatio_delay']
+            logger.debug("saved alpharatio settings")
+
+        if 'revolutiontt_torrentpass' in request.form:
+            cfg['revolutiontt.torrent_pass'] = request.form['revolutiontt_torrentpass']
+            cfg['revolutiontt.nick'] = request.form['revolutiontt_nick']
+            cfg['revolutiontt.nick_pass'] = request.form['revolutiontt_nickpassword']
+            cfg['revolutiontt.delay'] = request.form['revolutiontt_delay']
+            logger.debug("saved revolutiontt settings")
 
         cfg.sync()
 
@@ -176,6 +205,9 @@ def settings():
         cfg['sonarr.url'] = request.form['sonarr_url']
         cfg['sonarr.apikey'] = request.form['sonarr_apikey']
 
+        cfg['radarr.url'] = request.form['radarr_url']
+        cfg['radarr.apikey'] = request.form['radarr_apikey']
+
         if 'debug_file' in request.form:
             cfg['bot.debug_file'] = True
         else:
@@ -192,9 +224,9 @@ def settings():
     return render_template('settings.html')
 
 
-@app.route("/sonarr/check", methods=['POST'])
+@app.route("/<pvr_name>/check", methods=['POST'])
 @auth.login_required
-def check():
+def check(pvr_name):
     try:
         data = request.json
         if 'apikey' in data and 'url' in data:
@@ -209,15 +241,15 @@ def check():
                 return 'OK'
 
     except Exception as ex:
-        logger.exception("Exception while checking sonarr apikey:")
+        logger.exception("Exception while checking " + pvr_name + " apikey:")
 
     return 'ERR'
 
 
-@app.route("/sonarr/notify", methods=['POST'])
+@app.route("/<pvr_name>/notify", methods=['POST'])
 @auth.login_required
 @db.db_session
-def notify():
+def notify(pvr_name):
     try:
         data = request.json
         if 'id' in data:
@@ -225,17 +257,20 @@ def notify():
             announcement = db.Announced.get(id=data.get('id'))
             if announcement is not None and len(announcement.title) > 0:
                 logger.debug("Checking announcement again: %s", announcement.title)
-
-                approved = sonarr.wanted(announcement.title, announcement.torrent, announcement.indexer)
+                
+                if pvr_name == "Sonarr":
+                    approved = sonarr.wanted(announcement.title, announcement.torrent, announcement.indexer)
+                elif pvr_name == "Radarr":
+                    approved = radarr.wanted(announcement.title, announcement.torrent, announcement.indexer)
                 if approved:
-                    logger.debug("Sonarr accepted the torrent this time!")
+                    logger.debug(pvr_name + " accepted the torrent this time!")
                     return "OK"
                 else:
-                    logger.debug("Sonarr still refused this torrent...")
+                    logger.debug(pvr_name + " still refused this torrent...")
                     return "ERR"
 
     except Exception as ex:
-        logger.exception("Exception while notifying sonarr announcement:")
+        logger.exception("Exception while notifying " + pvr_name + " announcement:")
 
     return "ERR"
 
