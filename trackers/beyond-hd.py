@@ -37,7 +37,7 @@ def parse(announcement):
     global name
 
     decolored = utils.strip_irc_color_codes(announcement)
-    if 'https://beyond-hd.me/details.php?id=' not in decolored:
+    if 'New Torrent:' not in decolored:
         return
         
     # extract required information from announcement
