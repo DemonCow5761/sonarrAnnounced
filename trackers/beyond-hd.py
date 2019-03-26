@@ -41,13 +41,13 @@ def parse(announcement):
         return
         
     # extract required information from announcement
-    torrent_title = utils.replace_spaces(utils.substr(decolored, 'Name:\'', '\' uploaded', True), '.')
+    torrent_title = utils.replace_spaces(utils.substr(decolored, 'New Torrent:', '\' Category', True), '.')
     torrent_id = decolored.split('/')[-1]
     
     
-    if '<TV ::' in decolored:
+    if 'TV' in decolored:
         notify_pvr(torrent_id, torrent_title, auth_key, torrent_pass, name, 'Sonarr')
-    elif '<Movies ::' in decolored:
+    elif 'FraMeSToR' or 'Movies' in decolored:
         notify_pvr(torrent_id, torrent_title, auth_key, torrent_pass, name, 'Radarr')
 
 
