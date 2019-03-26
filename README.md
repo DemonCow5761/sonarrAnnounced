@@ -17,6 +17,7 @@ Python script to notify sonarr or radarr of tracker announcements from IRC annou
 8. TorrentLeech
 9. Alpharatio
 10. RevolutionTT
+11. Beyond-hd.me
 
 Open to suggestions/pull requests!
 
@@ -26,7 +27,6 @@ Open to suggestions/pull requests!
 
 ## Feature Requests
 Request features at [FeatHub](http://feathub.com/l3uddz/sonarrAnnounced)
-
 
 # Installation (on Debian Jessie)
 ## Python 3.5.2
