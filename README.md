@@ -1,4 +1,4 @@
-Don't know what I'm doing at all, tried to add beyond-hd.me I can connect and join the proper channels just fine and same with IPTorrents (which I haven't touched) but neither grab any of the announces to check.  Torrentleech is working.  I don't use any of the other trackers.
+Don't know what I'm doing at all, tried to add beyond-hd.me I can connect and join the proper channel just fine and same with IPTorrents (which I haven't touched) but neither grab any of the announces to check.  Torrentleech is working.  I don't use any of the other trackers.
 
 Would love some help getting those two trackers working all the way.
 
